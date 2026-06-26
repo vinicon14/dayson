@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dayson — inteligência de moda</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-inner">
+      <h1 class="logo">dayson</h1>
+      <p class="tagline">inteligência artificial de moda & estética</p>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="consultar">
+      <span class="tab-icon">✦</span> Consultar
+    </button>
+    <button class="tab" data-tab="julgar">
+      <span class="tab-icon">◈</span> Julgar
+    </button>
+    <button class="tab" data-tab="sobre">
+      <span class="tab-icon">◌</span> Sobre
+    </button>
+  </nav>
+
+  <main class="main">
+
+    <!-- CONSULTAR -->
+    <section class="panel active" id="panel-consultar">
+      <div class="panel-header">
+        <h2>Consultoria de Beleza</h2>
+        <p class="panel-sub">Pergunte sobre moda, skincare, maquiagem, cabelo e estilo</p>
+      </div>
+      <div class="chat" id="chat">
+        <div class="msg msg-ia">
+          <div class="msg-avatar">d</div>
+          <div class="msg-bubble">
+            <p>Olá! Sou a <strong>dayson</strong>, sua consultora de moda e beleza. Pergunte o que quiser — dicas de estilo, skincare, tendências, cores… estou aqui para ajudar! 💫</p>
+          </div>
+        </div>
+      </div>
+      <div class="chat-input-wrap">
+        <input type="text" class="chat-input" id="chatInput" placeholder="Digite sua pergunta..." />
+        <button class="chat-send" id="chatSend" aria-label="Enviar">→</button>
+      </div>
+      <div class="model-status" id="modelStatusConsultar"></div>
+    </section>
+
+    <!-- JULGAR -->
+    <section class="panel" id="panel-julgar">
+      <div class="panel-header">
+        <h2>Julgamento de Look</h2>
+        <p class="panel-sub">Envie uma foto sua e receba uma análise completa de moda e estética</p>
+      </div>
+
+      <div class="upload-zone" id="uploadZone">
+        <div class="upload-content" id="uploadContent">
+          <div class="upload-icon">⊞</div>
+          <p class="upload-text">Arraste sua foto aqui ou <span class="upload-link">clique para selecionar</span></p>
+          <p class="upload-hint">JPG, PNG • Máx 10MB</p>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" hidden />
+      </div>
+
+      <div class="loading-overlay" id="loadingOverlay" hidden>
+        <div class="loading-card">
+          <div class="loading-spinner"></div>
+          <p class="loading-text" id="loadingText">dayson está analisando sua foto...</p>
+          <div class="loading-bar-wrap">
+            <div class="loading-bar" id="loadingBar"></div>
+          </div>
+          <p class="loading-step" id="loadingStep">Carregando modelo de IA...</p>
+        </div>
+      </div>
+
+      <div class="result" id="result" hidden>
+        <div class="result-top">
+          <div class="result-img-wrap">
+            <img class="result-img" id="resultImg" alt="Sua foto" />
+          </div>
+          <div class="result-score-wrap">
+            <div class="result-circle" id="resultCircle">
+              <span class="result-bigscore" id="resultScore">0</span>
+              <span class="result-biglabel">/10</span>
+            </div>
+            <p class="result-verdict" id="resultVerdict"></p>
+          </div>
+        </div>
+
+        <div class="categories" id="categories"></div>
+
+        <div class="result-comment">
+          <h3>Análise dayson</h3>
+          <p id="resultComment"></p>
+        </div>
+
+        <div class="result-tips">
+          <h3>Dicas de estilo</h3>
+          <ul id="resultTips"></ul>
+        </div>
+
+        <button class="btn-reset" id="btnReset">Analisar outra foto →</button>
+      </div>
+
+      <div class="model-status" id="modelStatusJulgar"></div>
+    </section>
+
+    <!-- SOBRE -->
+    <section class="panel" id="panel-sobre">
+      <div class="panel-header">
+        <h2>Sobre a dayson</h2>
+      </div>
+      <div class="about-card">
+        <div class="about-logo">dayson</div>
+        <p class="about-text">
+          <strong>dayson</strong> é uma inteligência artificial especializada em moda, beleza e estética.
+          Combinamos processamento de linguagem natural e visão computacional para oferecer
+          consultoria de estilo personalizada.
+        </p>
+        <p class="about-text">
+          A IA roda diretamente no seu navegador usando <strong>Transformers.js</strong> — nenhuma foto sua
+          é enviada para servidores externos. Sua privacidade é prioridade.
+        </p>
+        <div class="about-tech">
+          <span>🧠 Transformers.js</span>
+          <span>📷 BLIP Image Captioning</span>
+          <span>🔒 100% local</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>dayson © 2026 — inteligência de moda</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

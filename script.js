@@ -1,99 +1,9 @@
 // ============================================================
-// KNOWLEDGE BASE — Consultoria de Beleza (100% local)
+// GEMINI API — Config
 // ============================================================
-const tipsDB = [
-  {
-    id: 'skincare',
-    keywords: ['pele', 'acne', 'espinha', 'cravo', 'oleosa', 'seca', 'mista', 'hidratar', 'hidratação', 'hidratante', 'rugas', 'olheira', 'protetor solar', 'fps', 'limpeza', 'sabonete', 'tonico', 'tônico', 'serum', 'sérum', 'vitamina c', 'retinol', 'esfoliar', 'esfoliação'],
-    responses: [
-      'Para pele oleosa, use um cleanser com ácido salicílico e um hidratante oil-free. A dica de ouro: não pule o protetor solar mesmo em dias nublados — sua pele agradece!',
-      'A chave para uma pele saudável é consistência: limpeza, hidratação e proteção solar todos os dias. À noite, inclua um sérum com vitamina C ou retinol (alternando os dias).',
-      'Olheiras podem ser amenizadas com compressas frias pela manhã e cremes com cafeína ou vitamina K. Mas nada substitui uma boa noite de sono!',
-      'Esfolie a pele 1-2x por semana para renovar as células. Prefira esfoliantes químicos (AHA/BHA) aos físicos — são mais suaves e eficazes.',
-      'O protetor solar é o item mais importante da sua rotina. Use FPS 30+ todos os dias, reaplicando a cada 3-4 horas. Sua pele do futuro vai te agradecer.',
-      'Para acne, evite produtos oleosos e lave o rosto no máximo 2x ao dia. Lavar demais resseca e estimula ainda mais oleosidade. Consulte um dermatologista para casos persistentes.',
-    ],
-  },
-  {
-    id: 'makeup',
-    keywords: ['maquiagem', 'maquiar', 'batom', 'base', 'corretivo', 'delineado', 'sombra', 'rimel', 'rímel', 'blush', 'iluminador', 'pó', 'contorno', 'fixador', 'primer', 'make'],
-    responses: [
-      'Uma base bem aplicada muda tudo! Use primer antes e esfumace bem com pincel ou esponja úmida. O segredo é construir em camadas finas.',
-      'Para um batom durar o dia todo: esfolie os lábios, aplique um delineador labial, preencha com batom e dê um leve selado com pó translúcido através de um lenço.',
-      'O delineado perfeito pede prática e um bom produto. Comece com traços finos e vá engrossando. Dica: use fita adesiva para guiar o traço!',
-      'Sombra nos olhos claros realça o olhar. Para olhos pequenos, evite preto na linha d\'água inferior — use marrom ou bege para abrir o olhar.',
-      'O contorno certo valoriza suas feições. O segredo é esfumar bem: nada de linhas marcadas. Produtos em creme são mais fáceis de espalhar que os em pó.',
-    ],
-  },
-  {
-    id: 'hair',
-    keywords: ['cabelo', 'corte', 'penteado', 'shampoo', 'condicionador', 'hidratacao capilar', 'cabelo cacheado', 'cabelo liso', 'cabelo crespo', 'cacho', 'finalizar', 'leave-in', 'oleo capilar', 'óleo capilar', 'reconstrucao', 'nutricao', 'nutrição', 'umbização', 'umbização capilar'],
-    responses: [
-      'Cabelos cacheados e crespos amam hidratação! Invite em um bom leave-in e finalize com os cachos amassados de baixo para cima. Nunca passe os dedos depois de seco!',
-      'Para cabelos lisos, evite lavar com água muito quente — isso abre as cutículas e causa frizz. Use shampoo seco entre as lavagens para preservar a oleosidade natural.',
-      'A hidratação capilar deve ser feita 1x por semana. Máscaras com queratina, colágeno e óleos vegetais fazem milagres. Não esqueça de finalizar com óleo nas pontas.',
-      'O corte certo valoriza seu formato de rosto. Rostos redondos ficam bem com cortes alongados nas laterais; rostos quadrados suavizam com camadas e franjas laterais.',
-      'Um bom cronograma capilar alterna hidratação, nutrição e reconstrução. Assim você mantém o cabelo saudável, brilhante e forte em todas as estações.',
-    ],
-  },
-  {
-    id: 'fashion',
-    keywords: ['roupa', 'estilo', 'look', 'vestido', 'calça', 'blusa', 'saia', 'short', 'jeans', 'social', 'terno', 'blazer', 'cropped', 'look', 'acessorio', 'acessório', 'bolsa', 'sapato', 'tenis', 'salto', 'tendencia', 'tendência', 'moda', 'outfit'],
-    responses: [
-      'Ter um estilo próprio é mais sobre confiança do que sobre tendências. Invista em peças-base de qualidade (jeans bem cortado, camiseta branca, blazer) e use os acessórios para expressar personalidade.',
-      'A tendência atual mistura peças estruturadas com casuais — um blazer com jeans e tênis, por exemplo. O contraste de texturas cria um visual interessante e moderno.',
-      'Cores neutras (preto, branco, bege, cinza) são a base de um guarda-roupa versátil. Adicione 2-3 peças coloridas ou estampadas para dar vida aos looks.',
-      'Acessórios transformam qualquer look: um cinto marcando a cintura, um colar statement ou uma bolsa com personalidade elevam o visual sem esforço.',
-      'Para um look monocromático funcionar, varie texturas: couro com algodão, seda com lã. O contraste tátil mantém o visual interessante mesmo numa só cor.',
-    ],
-  },
-  {
-    id: 'colors',
-    keywords: ['cor', 'cores', 'coloracao', 'cartela', 'colorimetria', 'tom de pele', 'tom', 'pele negra', 'pele branca', 'pele morena', 'combina', 'combinar', 'colorido'],
-    responses: [
-      'A colorimetria pessoal é a chave para escolher cores que valorizam você. Peles com subtom quente (veias verdes) combinam com tons terrosos e dourados. Subtom frio (veias azuis) brilha em azuis, rosas e prata.',
-      'Para peles negras e morenas, cores vibrantes como vermelho, amarelo, azul royal e verde esmeralda criam um contraste deslumbrante. Tons pastel também podem funcionar com a maquiagem certa.',
-      'O preto combina com tudo, mas explore marinho, marrom e cinza chumbo como alternativas igualmente versáteis e talvez mais interessantes.',
-      'Uma dica prática: cores análogas (vizinhas no círculo cromático) criam looks harmônicos. Cores complementares (opostas) criam contraste ousado e vibrante.',
-    ],
-  },
-  {
-    id: 'body',
-    keywords: ['corpo', 'formato', 'silhueta', 'magro', 'magra', 'gordo', 'gorda', 'plus size', 'curvy', 'cintura', 'quadril', 'ombro', 'barriga', 'seios', 'alto', 'baixa', 'alongar', 'alongar silhueta'],
-    responses: [
-      'Vista seu corpo real, não o corpo que você acha que deveria ter. Roupas que servem bem no seu tamanho atual são sempre mais elegantes do que peças apertadas ou largas demais.',
-      'Para alongar a silhueta, use a mesma cor da cintura aos pés — isso cria uma linha vertical contínua. Sapatos de cor similar à calça também ajudam.',
-      'Silhueta ampulheta: marque a cintura e abuse de peças que equilibrem ombros e quadris. Vestidos envelope e cintos são seus melhores amigos.',
-      'Silhueta pera (quadris largos): destaque a parte de cima com cores claras, decotes e ombreiras, e use cores escuras na parte de baixo para equilibrar.',
-      'Silhueta triângulo invertido (ombros largos): aposte em decotes em V, cores escuras em cima e claras em baixo, e calças com detalhes nos quadris para equilibrar.',
-    ],
-  },
-  {
-    id: 'perfume',
-    keywords: ['perfume', 'perfumaria', 'fragrancia', 'fragrância', 'cheiro', 'aroma', 'colônia', 'desodorante'],
-    responses: [
-      'O perfume ideal é aquele que conversa com sua química corporal. Teste na pele e espere 15 minutos para sentir o aroma real — nunca julgue pelo cheiro no frasco.',
-      'Perfumes cítricos e florais são perfeitos para o dia. Orientais e amadeirados funcionam melhor à noite. Mas no fim, use o que te faz feliz a qualquer hora!',
-      'Para o perfume durar mais: aplique nas áreas quentes do corpo (punhos, pescoço, atrás dos joelhos) e hidrate a pele antes. Perfume em pele hidratada dura muito mais.',
-    ],
-  },
-  {
-    id: 'saudacao',
-    keywords: ['oi', 'ola', 'olá', 'bom dia', 'boa tarde', 'boa noite', 'hey', 'tudo bem', 'td bem'],
-    responses: [
-      'Olá! 😊 Sou a dayson sofia, sua consultora de moda e beleza. Como posso ajudar hoje? Pode perguntar sobre skincare, maquiagem, cabelo, moda ou cores!',
-      'Oi! Que bom falar com você! Estou aqui para dar dicas de beleza, moda e estilo. O que você gostaria de saber?',
-    ],
-  },
-];
-
-const fallbackResponses = [
-  'Que pergunta interessante! Pelo que entendi, você quer uma dica de estilo. Invista em peças atemporais de qualidade e use acessórios para dar personalidade ao look.',
-  'Ótima pergunta! No universo da moda, o mais importante é o conforto e a confiança. Escolha peças que façam você se sentir bem — isso transparece no visual.',
-  'Entendi! Uma dica valiosa: mantenha um guarda-roupa cápsula com peças versáteis que se combinam entre si. Isso simplifica suas manhãs e garante looks sempre elegantes.',
-  'Sobre isso que você perguntou, a dica de ouro é: conheça seu próprio estilo antes de seguir tendências. O que funciona em alguém pode não funcionar em você — e tá tudo bem!',
-  'Boa pergunta! Lembre-se: a moda é sobre expressão pessoal. Misture referências, experimente combinações inusitadas e, acima de tudo, divirta-se com o processo.',
-];
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const STORAGE_KEY = 'dayson_gemini_key';
+const SYSTEM_PROMPT = 'Você é a "dayson sofia", uma consultora de moda, beleza e estética especialista, amigável e direta. Responda perguntas sobre skincare, maquiagem, cabelo, moda, cores, perfumes, estilo pessoal e tendências. Seja concisa, prática e escreva em português brasileiro. Não use markdown. Limite a 2-3 parágrafos.';
 
 // ============================================================
 // DOM REFS
@@ -131,8 +41,6 @@ const modelStatusJulgar = $('modelStatusJulgar');
 // ============================================================
 // API KEY MANAGEMENT
 // ============================================================
-const STORAGE_KEY = 'dayson_gemini_key';
-
 function loadApiKey() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
@@ -181,30 +89,8 @@ tabs.forEach((btn) => {
 });
 
 // ============================================================
-// CHAT — Consultoria de Beleza (100% local)
+// CHAT — Consultoria via Gemini API
 // ============================================================
-function normalize(str) {
-  return str.toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9\s]/g, '');
-}
-
-function findBestMatch(text) {
-  const normalized = normalize(text);
-  let best = { score: 0, responses: fallbackResponses };
-  for (const cat of tipsDB) {
-    let score = 0;
-    for (const kw of cat.keywords) {
-      const nkw = normalize(kw);
-      if (normalized.includes(nkw)) score += nkw.length;
-    }
-    if (score > best.score) {
-      best = { score, responses: cat.responses, id: cat.id };
-    }
-  }
-  return best;
-}
-
 function addMsg(text, isUser = false) {
   const div = document.createElement('div');
   div.className = `msg ${isUser ? 'msg-user' : 'msg-ia'}`;
@@ -222,24 +108,60 @@ function addMsg(text, isUser = false) {
   chat.scrollTop = chat.scrollHeight;
 }
 
-function handleChat() {
+function addMsgWithEl(text, isUser) {
+  addMsg(text, isUser);
+}
+
+async function handleChat() {
   const text = chatInput.value.trim();
   if (!text) return;
+
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    addMsg('Primeiro configure sua chave da API Gemini na aba "Julgar" para eu poder responder.');
+    return;
+  }
+
   addMsg(text, true);
   chatInput.value = '';
   chatSend.disabled = true;
-  setTimeout(() => {
-    const match = findBestMatch(text);
-    const reply = match.responses[Math.floor(Math.random() * match.responses.length)];
+
+  try {
+    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [
+          { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
+          { role: 'user', parts: [{ text }] }
+        ],
+        generationConfig: { temperature: 0.7, maxOutputTokens: 512 }
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`Erro ${response.status}: ${err}`);
+    }
+
+    const data = await response.json();
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!reply) throw new Error('Resposta vazia');
+
     addMsg(reply);
-    chatSend.disabled = false;
-    chatInput.focus();
-  }, 500 + Math.random() * 400);
+  } catch (err) {
+    console.error('Chat error:', err);
+    addMsg('Desculpe, ocorreu um erro ao consultar a IA. Verifique sua chave da API e tente novamente.');
+  }
+
+  chatSend.disabled = false;
+  chatInput.focus();
 }
 
 chatSend.addEventListener('click', handleChat);
 chatInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') handleChat();
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleChat(); }
 });
 
 // ============================================================

@@ -312,7 +312,6 @@ Seja honesta e realista nos scores. Escreva tudo em português brasileiro.`;
       body: JSON.stringify({
         model: MODEL,
         messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
           {
             role: 'user',
             content: [

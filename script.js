@@ -1,9 +1,52 @@
 // ============================================================
-// GEMINI API — Config
+// API — OpenRouter (OpenAI-compatible)
 // ============================================================
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
-const STORAGE_KEY = 'dayson_gemini_key';
+const API_BASE_URL = 'https://openrouter.ai/api/v1';
+const API_KEY = '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';
+const MODEL = 'nvidia/nemotron-nano-12b-v2-vl:free';
 const SYSTEM_PROMPT = 'Você é a "dayson sofia", uma consultora de moda, beleza e estética especialista, amigável e direta. Responda perguntas sobre skincare, maquiagem, cabelo, moda, cores, perfumes, estilo pessoal e tendências. Seja concisa, prática e escreva em português brasileiro. Não use markdown. Limite a 2-3 parágrafos.';
+function apiHeaders() {
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${API_KEY}`,
+    'HTTP-Referer': 'https://dayson-black.vercel.app',
+    'X-Title': 'dayson sofia'
+  };
+}
+
+// ============================================================
+// USAGE TRACKER
+// ============================================================
+const USAGE_KEY = 'dayson_usage';
+
+function getUsage() {
+  const today = new Date().toDateString();
+  const saved = JSON.parse(localStorage.getItem(USAGE_KEY) || '{}');
+  if (saved.date !== today) {
+    saved.date = today;
+    saved.chats = 0;
+    saved.analyses = 0;
+  }
+  return saved;
+}
+
+function saveUsage(usage) {
+  localStorage.setItem(USAGE_KEY, JSON.stringify(usage));
+}
+
+function incrementUsage(type) {
+  const usage = getUsage();
+  usage[type] = (usage[type] || 0) + 1;
+  saveUsage(usage);
+  updateUsageDisplay();
+}
+
+function updateUsageDisplay() {
+  const el = $('usageDisplay');
+  if (!el) return;
+  const usage = getUsage();
+  el.innerHTML = `<span>💬 ${usage.chats || 0} consultas</span><span>📸 ${usage.analyses || 0} análises</span><span>📅 ${usage.date}</span>`;
+}
 
 // ============================================================
 // DOM REFS
@@ -33,48 +76,11 @@ const categories = $('categories');
 const resultComment = $('resultComment');
 const resultTips = $('resultTips');
 const btnReset = $('btnReset');
-const apiKeyInput = $('apiKeyInput');
-const apiKeySave = $('apiKeySave');
-const apiKeyStatus = $('apiKeyStatus');
-const modelStatusJulgar = $('modelStatusJulgar');
-
-// ============================================================
-// API KEY MANAGEMENT
-// ============================================================
-function loadApiKey() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    apiKeyInput.value = saved;
-    apiKeyStatus.textContent = 'Chave salva ✓';
-    apiKeyStatus.className = 'api-key-status ok';
-    return saved;
-  }
-  apiKeyStatus.textContent = 'Nenhuma chave configurada';
-  apiKeyStatus.className = 'api-key-status';
-  return '';
-}
-
-function saveApiKey() {
-  const key = apiKeyInput.value.trim();
-  if (!key) {
-    apiKeyStatus.textContent = 'Digite uma chave válida';
-    apiKeyStatus.className = 'api-key-status erro';
-    return;
-  }
-  localStorage.setItem(STORAGE_KEY, key);
-  apiKeyStatus.textContent = 'Chave salva com sucesso ✓';
-  apiKeyStatus.className = 'api-key-status ok';
-}
-
-function getApiKey() {
-  const key = apiKeyInput.value.trim() || localStorage.getItem(STORAGE_KEY);
-  return key || '';
-}
-
-apiKeySave.addEventListener('click', saveApiKey);
-apiKeyInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') saveApiKey();
-});
+const chatPhotoInput = $('chatPhotoInput');
+const chatPhotoPreview = $('chatPhotoPreview');
+const chatPhotoImg = $('chatPhotoImg');
+const chatPhotoRemove = $('chatPhotoRemove');
+let chatPhotoDataUrl = null;
 
 // ============================================================
 // TABS
@@ -89,8 +95,27 @@ tabs.forEach((btn) => {
 });
 
 // ============================================================
-// CHAT — Consultoria via Gemini API
+// CHAT — Consultoria via OpenRouter
 // ============================================================
+chatPhotoInput.addEventListener('change', () => {
+  const file = chatPhotoInput.files[0];
+  if (!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    chatPhotoDataUrl = reader.result;
+    chatPhotoImg.src = reader.result;
+    chatPhotoPreview.hidden = false;
+  };
+  reader.readAsDataURL(file);
+});
+
+chatPhotoRemove.addEventListener('click', () => {
+  chatPhotoDataUrl = null;
+  chatPhotoPreview.hidden = true;
+  chatPhotoImg.src = '';
+  chatPhotoInput.value = '';
+});
+
 function addMsg(text, isUser = false) {
   const div = document.createElement('div');
   div.className = `msg ${isUser ? 'msg-user' : 'msg-ia'}`;
@@ -108,34 +133,37 @@ function addMsg(text, isUser = false) {
   chat.scrollTop = chat.scrollHeight;
 }
 
-function addMsgWithEl(text, isUser) {
-  addMsg(text, isUser);
-}
-
 async function handleChat() {
   const text = chatInput.value.trim();
-  if (!text) return;
+  if (!text && !chatPhotoDataUrl) return;
 
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    addMsg('Primeiro configure sua chave da API Gemini na aba "Julgar" para eu poder responder.');
-    return;
-  }
-
-  addMsg(text, true);
+  const msg = text || '[com foto]';
+  addMsg(msg, true);
   chatInput.value = '';
   chatSend.disabled = true;
 
+  let userContent;
+  if (chatPhotoDataUrl) {
+    userContent = [{ type: 'text', text: text || 'Analise esta foto' }];
+    if (chatPhotoDataUrl) {
+      userContent.push({ type: 'image_url', image_url: { url: chatPhotoDataUrl } });
+    }
+  } else {
+    userContent = text;
+  }
+
   try {
-    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+    const response = await fetch(`${API_BASE_URL}/chat/completions`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: apiHeaders(),
       body: JSON.stringify({
-        contents: [
-          { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
-          { role: 'user', parts: [{ text }] }
+        model: MODEL,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: userContent }
         ],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 512 }
+        temperature: 0.7,
+        max_tokens: 512
       })
     });
 
@@ -145,14 +173,20 @@ async function handleChat() {
     }
 
     const data = await response.json();
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const reply = data?.choices?.[0]?.message?.content;
 
     if (!reply) throw new Error('Resposta vazia');
 
+    chatPhotoDataUrl = null;
+    chatPhotoPreview.hidden = true;
+    chatPhotoImg.src = '';
+    chatPhotoInput.value = '';
+
+    incrementUsage('chats');
     addMsg(reply);
   } catch (err) {
     console.error('Chat error:', err);
-    addMsg('Desculpe, ocorreu um erro ao consultar a IA. Verifique sua chave da API e tente novamente.');
+    addMsg('Desculpe, ocorreu um erro ao consultar a IA. Tente novamente.');
   }
 
   chatSend.disabled = false;
@@ -199,16 +233,15 @@ function processFile(file) {
   const reader = new FileReader();
   reader.onload = () => {
     const img = new Image();
-    img.onload = () => analyzeWithGemini(img, file);
+    img.onload = () => analyzePhoto(img, file);
     img.src = reader.result;
   };
   reader.readAsDataURL(file);
 }
 
 // ============================================================
-// GEMINI API — Análise de Fotos
+// ANÁLISE DE FOTOS — OpenRouter Vision
 // ============================================================
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
 function getVerdict(score) {
   if (score >= 9) return 'Deslumbrante! ✨';
@@ -219,13 +252,7 @@ function getVerdict(score) {
   return 'Precisa de atenção — vamos trabalhar nisso';
 }
 
-async function analyzeWithGemini(img, file) {
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    alert('Primeiro configure sua chave da API Gemini na seção acima.');
-    return;
-  }
-
+async function analyzePhoto(img, file) {
   uploadZone.style.display = 'none';
   result.hidden = true;
   loadingOverlay.hidden = false;
@@ -238,11 +265,10 @@ async function analyzeWithGemini(img, file) {
     loadingBar.style.width = '30%';
     loadingStep.textContent = 'Convertendo imagem...';
 
-    const base64 = await fileToBase64(file);
-    const mimeType = file.type;
+    const dataUrl = await fileToDataUrl(file);
 
     loadingBar.style.width = '50%';
-    loadingStep.textContent = 'Enviando para Gemini AI...';
+    loadingStep.textContent = 'Enviando para IA...';
     loadingText.textContent = 'dayson sofia está analisando seu look...';
 
     const prompt = `Você é a "dayson sofia", uma especialista em moda, estilo e estética. Analise esta foto de uma pessoa e forneça uma crítica de moda detalhada e realista.
@@ -262,59 +288,62 @@ Retorne APENAS um objeto JSON válido (sem markdown, sem texto extra) com esta e
 
 Seja honesta e realista nos scores. Escreva tudo em português brasileiro.`;
 
-    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+    const response = await fetch(`${API_BASE_URL}/chat/completions`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: apiHeaders(),
       body: JSON.stringify({
-        contents: [{
-          parts: [
-            { text: prompt },
-            { inline_data: { mime_type: mimeType, data: base64 } }
-          ]
-        }]
+        model: MODEL,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: prompt },
+              { type: 'image_url', image_url: { url: dataUrl } }
+            ]
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 1024
       })
     });
 
     if (!response.ok) {
       const err = await response.text();
-      throw new Error(`Gemini API error (${response.status}): ${err}`);
+      throw new Error(`API error (${response.status}): ${err}`);
     }
 
     loadingBar.style.width = '80%';
-    loadingStep.textContent = 'Processando resposta da IA...';
+    loadingStep.textContent = 'Processando resposta...';
 
     const data = await response.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const text = data?.choices?.[0]?.message?.content;
 
-    if (!text) {
-      throw new Error('Resposta vazia da API Gemini');
-    }
+    if (!text) throw new Error('Resposta vazia');
 
-    const json = JSON.parse(text.replace(/```json\s*/gi, '').replace(/```\s*$/g, '').trim());
+    const cleaned = text.replace(/```json\s*/gi, '').replace(/```\s*$/g, '').trim();
+    const json = JSON.parse(cleaned);
 
     loadingBar.style.width = '95%';
     loadingStep.textContent = 'Montando resultado...';
     await new Promise(r => setTimeout(r, 300));
 
+    incrementUsage('analyses');
     loadingOverlay.hidden = true;
     showResult(img, json);
 
   } catch (err) {
-    console.error('Gemini analysis error:', err);
+    console.error('Analysis error:', err);
     loadingOverlay.hidden = true;
     alert('Erro ao analisar a foto: ' + err.message);
     uploadZone.style.display = 'block';
   }
 }
 
-function fileToBase64(file) {
+function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      const base64 = result.split(',')[1];
-      resolve(base64);
-    };
+    reader.onload = () => resolve(reader.result);
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
@@ -394,9 +423,6 @@ btnReset.addEventListener('click', () => {
 // ============================================================
 // INIT
 // ============================================================
-loadApiKey();
-modelStatusJulgar.textContent = 'Use sua chave da API Gemini para analisar fotos';
+updateUsageDisplay();
 
 console.log('✨ dayson sofia — inteligência de moda');
-console.log('📸 Análise via Gemini 2.0 Flash API');
-console.log('💬 Consultoria local (knowledge base)');

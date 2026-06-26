@@ -45,11 +45,22 @@
           </div>
         </div>
       </div>
+      <div class="chat-photo-wrap">
+        <label class="chat-photo-btn" id="chatPhotoBtn" title="Anexar foto">
+          <input type="file" id="chatPhotoInput" accept="image/*" hidden />
+          📷
+        </label>
+        <div class="chat-photo-preview" id="chatPhotoPreview" hidden>
+          <img id="chatPhotoImg" />
+          <button class="chat-photo-remove" id="chatPhotoRemove">✕</button>
+        </div>
+      </div>
       <div class="chat-input-wrap">
         <input type="text" class="chat-input" id="chatInput" placeholder="Digite sua pergunta..." />
         <button class="chat-send" id="chatSend" aria-label="Enviar">→</button>
       </div>
       <div class="model-status" id="modelStatusConsultar"></div>
+      <div class="usage-display" id="usageDisplay"></div>
     </section>
 
     <!-- JULGAR -->
@@ -57,15 +68,6 @@
       <div class="panel-header">
         <h2>Julgamento de Look</h2>
         <p class="panel-sub">Envie uma foto sua e receba uma análise completa de moda e estética</p>
-      </div>
-
-      <div class="api-key-section">
-        <label class="api-key-label">🔑 Chave da API Gemini</label>
-        <div class="api-key-row">
-          <input type="password" class="api-key-input" id="apiKeyInput" placeholder="Cole sua chave da API Gemini aqui" />
-          <button class="api-key-btn" id="apiKeySave">Salvar</button>
-        </div>
-        <p class="api-key-status" id="apiKeyStatus"></p>
       </div>
 
       <div class="upload-zone" id="uploadZone">
@@ -84,7 +86,7 @@
           <div class="loading-bar-wrap">
             <div class="loading-bar" id="loadingBar"></div>
           </div>
-          <p class="loading-step" id="loadingStep">Enviando para IA Gemini...</p>
+          <p class="loading-step" id="loadingStep">Enviando para IA...</p>
         </div>
       </div>
 
@@ -129,17 +131,12 @@
         <div class="about-logo">dayson <span style="background:linear-gradient(135deg,var(--secondary),var(--primary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">sofia</span></div>
         <p class="about-text">
           <strong>dayson sofia</strong> é uma inteligência artificial especializada em moda, beleza e estética.
-          Usamos o modelo <strong>Gemini 2.0 Flash</strong> do Google para analisar suas fotos com
-          precisão e oferecer consultoria de estilo personalizada.
-        </p>
-        <p class="about-text">
-          Você precisa de uma chave da API Gemini (gratuita em ai.google.dev) para usar o julgamento de fotos.
-          Sua chave fica salva apenas no seu navegador.
+          Analisamos suas fotos e oferecemos consultoria de estilo personalizada.
         </p>
         <div class="about-tech">
-          <span>🤖 Google Gemini 2.0 Flash</span>
+          <span>🤖 IA de moda</span>
           <span>📷 Análise multimodal</span>
-          <span>🔑 API key própria</span>
+          <span>✨ Pronto para usar</span>
         </div>
       </div>
     </section>

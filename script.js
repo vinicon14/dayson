@@ -3,7 +3,7 @@
 // ============================================================
 const API_BASE_URL = 'https://openrouter.ai/api/v1';
 const API_KEY = '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';
-const MODEL = 'nvidia/nemotron-nano-12b-v2-vl:free';
+const MODEL = 'google/gemma-4-26b-a4b-it:free';
 const SYSTEM_PROMPT = 'Você é a "dayson sofia", uma consultora de moda, beleza e estética especialista, amigável e direta. Responda perguntas sobre skincare, maquiagem, cabelo, moda, cores, perfumes, estilo pessoal e tendências. Seja concisa, prática e escreva em português brasileiro. Não use markdown. Limite a 2-3 parágrafos.';
 function apiHeaders() {
   return {
@@ -12,6 +12,16 @@ function apiHeaders() {
     'HTTP-Referer': 'https://dayson-black.vercel.app',
     'X-Title': 'dayson sofia'
   };
+}
+async function fetchWithTimeout(url, options, timeoutMs) {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: ctrl.signal });
+    return res;
+  } finally {
+    clearTimeout(id);
+  }
 }
 
 // ============================================================
@@ -153,7 +163,7 @@ async function handleChat() {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/chat/completions`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: apiHeaders(),
       body: JSON.stringify({
@@ -163,9 +173,9 @@ async function handleChat() {
           { role: 'user', content: userContent }
         ],
         temperature: 0.7,
-        max_tokens: 512
+        max_tokens: 1024
       })
-    });
+    }, 30000);
 
     if (!response.ok) {
       const err = await response.text();
@@ -175,7 +185,12 @@ async function handleChat() {
     const data = await response.json();
     const reply = data?.choices?.[0]?.message?.content;
 
-    if (!reply) throw new Error('Resposta vazia');
+    if (!reply) {
+      if (data?.choices?.[0]?.message?.reasoning) {
+        throw new Error('Modelo de raciocínio não suportado');
+      }
+      throw new Error('Resposta vazia');
+    }
 
     chatPhotoDataUrl = null;
     chatPhotoPreview.hidden = true;
@@ -186,7 +201,10 @@ async function handleChat() {
     addMsg(reply);
   } catch (err) {
     console.error('Chat error:', err);
-    addMsg('Desculpe, ocorreu um erro ao consultar a IA. Tente novamente.');
+    const msg = err.name === 'AbortError'
+      ? 'A consulta está demorando muito. Tente novamente.'
+      : 'Desculpe, ocorreu um erro ao consultar a IA. Tente novamente.';
+    addMsg(msg);
   }
 
   chatSend.disabled = false;
@@ -288,7 +306,7 @@ Retorne APENAS um objeto JSON válido (sem markdown, sem texto extra) com esta e
 
 Seja honesta e realista nos scores. Escreva tudo em português brasileiro.`;
 
-    const response = await fetch(`${API_BASE_URL}/chat/completions`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: apiHeaders(),
       body: JSON.stringify({
@@ -304,9 +322,9 @@ Seja honesta e realista nos scores. Escreva tudo em português brasileiro.`;
           }
         ],
         temperature: 0.7,
-        max_tokens: 1024
+        max_tokens: 2048
       })
-    });
+    }, 90000);
 
     if (!response.ok) {
       const err = await response.text();
@@ -319,7 +337,12 @@ Seja honesta e realista nos scores. Escreva tudo em português brasileiro.`;
     const data = await response.json();
     const text = data?.choices?.[0]?.message?.content;
 
-    if (!text) throw new Error('Resposta vazia');
+    if (!text) {
+      if (data?.choices?.[0]?.message?.reasoning) {
+        throw new Error('Modelo de raciocínio não suportado');
+      }
+      throw new Error('Resposta vazia');
+    }
 
     const cleaned = text.replace(/```json\s*/gi, '').replace(/```\s*$/g, '').trim();
     const json = JSON.parse(cleaned);
@@ -335,7 +358,10 @@ Seja honesta e realista nos scores. Escreva tudo em português brasileiro.`;
   } catch (err) {
     console.error('Analysis error:', err);
     loadingOverlay.hidden = true;
-    alert('Erro ao analisar a foto: ' + err.message);
+    const msg = err.name === 'AbortError'
+      ? 'A análise está demorando muito. Tente novamente com uma foto menor.'
+      : err.message;
+    alert('Erro ao analisar a foto: ' + msg);
     uploadZone.style.display = 'block';
   }
 }

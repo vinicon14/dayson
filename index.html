@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>dayson — inteligência de moda</title>
+  <title>dayson sofia — inteligência de moda</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
@@ -12,7 +12,7 @@
 
   <header class="header">
     <div class="header-inner">
-      <h1 class="logo">dayson</h1>
+      <h1 class="logo">dayson <span class="logo-surname">sofia</span></h1>
       <p class="tagline">inteligência artificial de moda & estética</p>
     </div>
   </header>
@@ -41,7 +41,7 @@
         <div class="msg msg-ia">
           <div class="msg-avatar">d</div>
           <div class="msg-bubble">
-            <p>Olá! Sou a <strong>dayson</strong>, sua consultora de moda e beleza. Pergunte o que quiser — dicas de estilo, skincare, tendências, cores… estou aqui para ajudar! 💫</p>
+            <p>Olá! Sou a <strong>dayson sofia</strong>, sua consultora de moda e beleza. Pergunte o que quiser — dicas de estilo, skincare, tendências, cores… estou aqui para ajudar! 💫</p>
           </div>
         </div>
       </div>
@@ -59,6 +59,15 @@
         <p class="panel-sub">Envie uma foto sua e receba uma análise completa de moda e estética</p>
       </div>
 
+      <div class="api-key-section">
+        <label class="api-key-label">🔑 Chave da API Gemini</label>
+        <div class="api-key-row">
+          <input type="password" class="api-key-input" id="apiKeyInput" placeholder="Cole sua chave da API Gemini aqui" />
+          <button class="api-key-btn" id="apiKeySave">Salvar</button>
+        </div>
+        <p class="api-key-status" id="apiKeyStatus"></p>
+      </div>
+
       <div class="upload-zone" id="uploadZone">
         <div class="upload-content" id="uploadContent">
           <div class="upload-icon">⊞</div>
@@ -71,11 +80,11 @@
       <div class="loading-overlay" id="loadingOverlay" hidden>
         <div class="loading-card">
           <div class="loading-spinner"></div>
-          <p class="loading-text" id="loadingText">dayson está analisando sua foto...</p>
+          <p class="loading-text" id="loadingText">dayson sofia está analisando sua foto...</p>
           <div class="loading-bar-wrap">
             <div class="loading-bar" id="loadingBar"></div>
           </div>
-          <p class="loading-step" id="loadingStep">Carregando modelo de IA...</p>
+          <p class="loading-step" id="loadingStep">Enviando para IA Gemini...</p>
         </div>
       </div>
 
@@ -96,7 +105,7 @@
         <div class="categories" id="categories"></div>
 
         <div class="result-comment">
-          <h3>Análise dayson</h3>
+          <h3>Análise dayson sofia</h3>
           <p id="resultComment"></p>
         </div>
 
@@ -114,23 +123,23 @@
     <!-- SOBRE -->
     <section class="panel" id="panel-sobre">
       <div class="panel-header">
-        <h2>Sobre a dayson</h2>
+        <h2>Sobre a dayson sofia</h2>
       </div>
       <div class="about-card">
-        <div class="about-logo">dayson</div>
+        <div class="about-logo">dayson <span style="background:linear-gradient(135deg,var(--secondary),var(--primary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">sofia</span></div>
         <p class="about-text">
-          <strong>dayson</strong> é uma inteligência artificial especializada em moda, beleza e estética.
-          Combinamos processamento de linguagem natural e visão computacional para oferecer
-          consultoria de estilo personalizada.
+          <strong>dayson sofia</strong> é uma inteligência artificial especializada em moda, beleza e estética.
+          Usamos o modelo <strong>Gemini 2.0 Flash</strong> do Google para analisar suas fotos com
+          precisão e oferecer consultoria de estilo personalizada.
         </p>
         <p class="about-text">
-          A IA roda diretamente no seu navegador usando <strong>Transformers.js</strong> — nenhuma foto sua
-          é enviada para servidores externos. Sua privacidade é prioridade.
+          Você precisa de uma chave da API Gemini (gratuita em ai.google.dev) para usar o julgamento de fotos.
+          Sua chave fica salva apenas no seu navegador.
         </p>
         <div class="about-tech">
-          <span>🧠 Transformers.js</span>
-          <span>📷 BLIP Image Captioning</span>
-          <span>🔒 100% local</span>
+          <span>🤖 Google Gemini 2.0 Flash</span>
+          <span>📷 Análise multimodal</span>
+          <span>🔑 API key própria</span>
         </div>
       </div>
     </section>
@@ -138,10 +147,9 @@
   </main>
 
   <footer class="footer">
-    <p>dayson © 2026 — inteligência de moda</p>
+    <p>dayson sofia © 2026 — inteligência de moda</p>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

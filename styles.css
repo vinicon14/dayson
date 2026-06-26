@@ -186,6 +186,62 @@ body {
 .chat-send:hover { opacity: .85; }
 .chat-send:disabled { opacity: .35; cursor: not-allowed; }
 
+/* API KEY */
+.api-key-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+.api-key-label {
+  font-size: .8rem;
+  color: var(--text3);
+  display: block;
+  margin-bottom: .5rem;
+  font-weight: 500;
+}
+.api-key-row {
+  display: flex;
+  gap: .5rem;
+}
+.api-key-input {
+  flex: 1;
+  padding: .7rem .85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface2);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: .85rem;
+  outline: none;
+  transition: border-color .2s;
+}
+.api-key-input:focus { border-color: var(--primary); }
+.api-key-input::placeholder { color: var(--text3); }
+.api-key-btn {
+  padding: .7rem 1.2rem;
+  border: none;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--primary), #d946ef);
+  color: #fff;
+  font-family: var(--font);
+  font-size: .85rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity .2s;
+}
+.api-key-btn:hover { opacity: .85; }
+.api-key-status {
+  font-size: .75rem;
+  color: var(--text3);
+  margin-top: .5rem;
+  min-height: 1.2em;
+}
+.api-key-status.ok { color: var(--secondary); }
+.api-key-status.erro { color: #f87171; }
+
 /* UPLOAD */
 .upload-zone {
   border: 2px dashed var(--border);

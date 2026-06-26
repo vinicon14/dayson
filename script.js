@@ -1,5 +1,5 @@
 // ============================================================
-// KNOWLEDGE BASE — Consultoria de Beleza
+// KNOWLEDGE BASE — Consultoria de Beleza (100% local)
 // ============================================================
 const tipsDB = [
   {
@@ -29,7 +29,7 @@ const tipsDB = [
     id: 'hair',
     keywords: ['cabelo', 'corte', 'penteado', 'shampoo', 'condicionador', 'hidratacao capilar', 'cabelo cacheado', 'cabelo liso', 'cabelo crespo', 'cacho', 'finalizar', 'leave-in', 'oleo capilar', 'óleo capilar', 'reconstrucao', 'nutricao', 'nutrição', 'umbização', 'umbização capilar'],
     responses: [
-      'Cabelos cacheados e crespos amam hidratação! Invista em um bom leave-in e finalize com os cachos amassados de baixo para cima. Nunca passe os dedos depois de seco!',
+      'Cabelos cacheados e crespos amam hidratação! Invite em um bom leave-in e finalize com os cachos amassados de baixo para cima. Nunca passe os dedos depois de seco!',
       'Para cabelos lisos, evite lavar com água muito quente — isso abre as cutículas e causa frizz. Use shampoo seco entre as lavagens para preservar a oleosidade natural.',
       'A hidratação capilar deve ser feita 1x por semana. Máscaras com queratina, colágeno e óleos vegetais fazem milagres. Não esqueça de finalizar com óleo nas pontas.',
       'O corte certo valoriza seu formato de rosto. Rostos redondos ficam bem com cortes alongados nas laterais; rostos quadrados suavizam com camadas e franjas laterais.',
@@ -81,7 +81,7 @@ const tipsDB = [
     id: 'saudacao',
     keywords: ['oi', 'ola', 'olá', 'bom dia', 'boa tarde', 'boa noite', 'hey', 'tudo bem', 'td bem'],
     responses: [
-      'Olá! 😊 Sou a dayson, sua consultora de moda e beleza. Como posso ajudar hoje? Pode perguntar sobre skincare, maquiagem, cabelo, moda ou cores!',
+      'Olá! 😊 Sou a dayson sofia, sua consultora de moda e beleza. Como posso ajudar hoje? Pode perguntar sobre skincare, maquiagem, cabelo, moda ou cores!',
       'Oi! Que bom falar com você! Estou aqui para dar dicas de beleza, moda e estilo. O que você gostaria de saber?',
     ],
   },
@@ -109,7 +109,6 @@ const chat = $('chat');
 const chatInput = $('chatInput');
 const chatSend = $('chatSend');
 const uploadZone = $('uploadZone');
-const uploadContent = $('uploadContent');
 const fileInput = $('fileInput');
 const loadingOverlay = $('loadingOverlay');
 const loadingText = $('loadingText');
@@ -124,8 +123,50 @@ const categories = $('categories');
 const resultComment = $('resultComment');
 const resultTips = $('resultTips');
 const btnReset = $('btnReset');
-const modelStatusConsultar = $('modelStatusConsultar');
+const apiKeyInput = $('apiKeyInput');
+const apiKeySave = $('apiKeySave');
+const apiKeyStatus = $('apiKeyStatus');
 const modelStatusJulgar = $('modelStatusJulgar');
+
+// ============================================================
+// API KEY MANAGEMENT
+// ============================================================
+const STORAGE_KEY = 'dayson_gemini_key';
+
+function loadApiKey() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    apiKeyInput.value = saved;
+    apiKeyStatus.textContent = 'Chave salva ✓';
+    apiKeyStatus.className = 'api-key-status ok';
+    return saved;
+  }
+  apiKeyStatus.textContent = 'Nenhuma chave configurada';
+  apiKeyStatus.className = 'api-key-status';
+  return '';
+}
+
+function saveApiKey() {
+  const key = apiKeyInput.value.trim();
+  if (!key) {
+    apiKeyStatus.textContent = 'Digite uma chave válida';
+    apiKeyStatus.className = 'api-key-status erro';
+    return;
+  }
+  localStorage.setItem(STORAGE_KEY, key);
+  apiKeyStatus.textContent = 'Chave salva com sucesso ✓';
+  apiKeyStatus.className = 'api-key-status ok';
+}
+
+function getApiKey() {
+  const key = apiKeyInput.value.trim() || localStorage.getItem(STORAGE_KEY);
+  return key || '';
+}
+
+apiKeySave.addEventListener('click', saveApiKey);
+apiKeyInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') saveApiKey();
+});
 
 // ============================================================
 // TABS
@@ -134,14 +175,13 @@ tabs.forEach((btn) => {
   btn.addEventListener('click', () => {
     tabs.forEach((t) => t.classList.remove('active'));
     btn.classList.add('active');
-    const tab = btn.dataset.tab;
     Object.values(panels).forEach((p) => p.classList.remove('active'));
-    panels[tab].classList.add('active');
+    panels[btn.dataset.tab].classList.add('active');
   });
 });
 
 // ============================================================
-// CHAT — Consultoria de Beleza
+// CHAT — Consultoria de Beleza (100% local)
 // ============================================================
 function normalize(str) {
   return str.toLowerCase()
@@ -170,7 +210,7 @@ function addMsg(text, isUser = false) {
   div.className = `msg ${isUser ? 'msg-user' : 'msg-ia'}`;
   const avatar = document.createElement('div');
   avatar.className = 'msg-avatar';
-  avatar.textContent = isUser ? 'V' : 'd';
+  avatar.textContent = isUser ? 'V' : 's';
   const bubble = document.createElement('div');
   bubble.className = 'msg-bubble';
   const p = document.createElement('p');
@@ -190,12 +230,11 @@ function handleChat() {
   chatSend.disabled = true;
   setTimeout(() => {
     const match = findBestMatch(text);
-    const responses = match.responses;
-    const reply = responses[Math.floor(Math.random() * responses.length)];
+    const reply = match.responses[Math.floor(Math.random() * match.responses.length)];
     addMsg(reply);
     chatSend.disabled = false;
     chatInput.focus();
-  }, 600 + Math.random() * 400);
+  }, 500 + Math.random() * 400);
 }
 
 chatSend.addEventListener('click', handleChat);
@@ -238,230 +277,16 @@ function processFile(file) {
   const reader = new FileReader();
   reader.onload = () => {
     const img = new Image();
-    img.onload = () => analyze(img);
+    img.onload = () => analyzeWithGemini(img, file);
     img.src = reader.result;
   };
   reader.readAsDataURL(file);
 }
 
 // ============================================================
-// TRANSFORMERS.JS — Model Loading
+// GEMINI API — Análise de Fotos
 // ============================================================
-let captionModel = null;
-let modelPromise = null;
-
-async function loadCaptionModel(onProgress) {
-  if (captionModel) return captionModel;
-  if (modelPromise) return modelPromise;
-
-  const onProgressHandler = typeof onProgress === 'function' ? onProgress : () => {};
-
-  modelPromise = (async () => {
-    try {
-      onProgressHandler({ status: 'loading', progress: 10, step: 'Carregando biblioteca Transformers.js...' });
-
-      if (typeof transformers === 'undefined') throw new Error('Transformers.js não carregado');
-
-      const { pipeline, env } = transformers;
-
-      env.allowRemoteModels = true;
-      env.allowLocalModels = false;
-
-      onProgressHandler({ status: 'downloading', progress: 30, step: 'Baixando modelo BLIP de IA... (pode levar alguns minutos na primeira vez)' });
-
-      const model = await pipeline('image-to-text', 'Xenova/blip-image-captioning-base', {
-        progress_callback: (p) => {
-          if (p.status === 'progress') {
-            const prog = 30 + Math.round((p.loaded / p.total) * 50);
-            onProgressHandler({ status: 'downloading', progress: Math.min(prog, 80), step: `Baixando modelo... ${Math.round(p.loaded / 1000000)}MB / ${Math.round(p.total / 1000000)}MB` });
-          }
-        },
-      });
-
-      onProgressHandler({ status: 'ready', progress: 100, step: 'Modelo carregado!' });
-      captionModel = model;
-      modelLoaded = true;
-      updateModelStatus('Modelo de IA pronto ✓');
-      return model;
-    } catch (err) {
-      console.warn('Transformers.js não disponível:', err);
-      modelPromise = null;
-      updateModelStatus('Modo offline — análise simulada');
-      throw err;
-    }
-  })();
-
-  return modelPromise;
-}
-
-function updateModelStatus(msg) {
-  modelStatusConsultar.textContent = msg;
-  modelStatusJulgar.textContent = msg;
-}
-
-// ============================================================
-// AI FASHION ANALYSIS
-// ============================================================
-const fashionKeywords = {
-  clothing: {
-    dress: { label: 'vestido', formal: 7, trendy: 8, style: 'feminino' },
-    suit: { label: 'terno', formal: 10, trendy: 6, style: 'formal' },
-    blazer: { label: 'blazer', formal: 8, trendy: 7, style: 'formal' },
-    jacket: { label: 'jaqueta', formal: 5, trendy: 8, style: 'casual' },
-    jeans: { label: 'jeans', formal: 3, trendy: 7, style: 'casual' },
-    pants: { label: 'calça', formal: 5, trendy: 6, style: 'variado' },
-    trousers: { label: 'calça social', formal: 9, trendy: 5, style: 'formal' },
-    skirt: { label: 'saia', formal: 6, trendy: 7, style: 'feminino' },
-    shirt: { label: 'camisa', formal: 7, trendy: 5, style: 'formal' },
-    't-shirt': { label: 'camiseta', formal: 2, trendy: 6, style: 'casual' },
-    top: { label: 'top', formal: 3, trendy: 7, style: 'casual' },
-    'high heels': { label: 'salto alto', formal: 8, trendy: 7, style: 'feminino' },
-    sneakers: { label: 'tênis', formal: 2, trendy: 8, style: 'casual' },
-    boots: { label: 'botas', formal: 5, trendy: 8, style: 'variado' },
-    tie: { label: 'gravata', formal: 10, trendy: 4, style: 'formal' },
-    coat: { label: 'casaco', formal: 7, trendy: 7, style: 'variado' },
-    sweater: { label: 'suéter', formal: 4, trendy: 6, style: 'casual' },
-    hoodie: { label: 'moletom', formal: 1, trendy: 7, style: 'streetwear' },
-    hat: { label: 'chapéu', formal: 5, trendy: 6, style: 'variado' },
-    glasses: { label: 'óculos', formal: 5, trendy: 7, style: 'variado' },
-    scarf: { label: 'cachecol', formal: 5, trendy: 6, style: 'variado' },
-    bag: { label: 'bolsa', formal: 5, trendy: 7, style: 'variado' },
-    watch: { label: 'relógio', formal: 6, trendy: 6, style: 'variado' },
-  },
-  colors: {
-    red: { label: 'vermelho', vibrant: 9 },
-    blue: { label: 'azul', vibrant: 7 },
-    black: { label: 'preto', vibrant: 4 },
-    white: { label: 'branco', vibrant: 3 },
-    pink: { label: 'rosa', vibrant: 8 },
-    green: { label: 'verde', vibrant: 7 },
-    yellow: { label: 'amarelo', vibrant: 9 },
-    purple: { label: 'roxo', vibrant: 8 },
-    gray: { label: 'cinza', vibrant: 2 },
-    brown: { label: 'marrom', vibrant: 3 },
-    gold: { label: 'dourado', vibrant: 9 },
-    silver: { label: 'prateado', vibrant: 8 },
-    orange: { label: 'laranja', vibrant: 9 },
-    navy: { label: 'marinho', vibrant: 4 },
-    beige: { label: 'bege', vibrant: 2 },
-  },
-  style: {
-    casual: { label: 'casual', formal: 2, trendy: 6 },
-    formal: { label: 'formal', formal: 10, trendy: 5 },
-    elegant: { label: 'elegante', formal: 8, trendy: 8 },
-    streetwear: { label: 'streetwear', formal: 1, trendy: 9 },
-    sporty: { label: 'esportivo', formal: 1, trendy: 5 },
-    bohemian: { label: 'boho', formal: 3, trendy: 7 },
-    vintage: { label: 'vintage', formal: 4, trendy: 8 },
-    minimal: { label: 'minimalista', formal: 7, trendy: 7 },
-  },
-};
-
-function analyzeCaption(caption) {
-  const lower = caption.toLowerCase();
-  const found = { clothes: [], colors: [], styles: [] };
-
-  for (const [key, data] of Object.entries(fashionKeywords.clothing)) {
-    if (lower.includes(key)) found.clothes.push(data);
-  }
-  for (const [key, data] of Object.entries(fashionKeywords.colors)) {
-    if (lower.includes(key)) found.colors.push(data);
-  }
-  for (const [key, data] of Object.entries(fashionKeywords.style)) {
-    if (lower.includes(key)) found.styles.push(data);
-  }
-
-  const scoreStyle = found.clothes.length > 0
-    ? Math.min(10, Math.round(5 + found.clothes.length * 1.2 + (found.styles.length > 0 ? 2 : 0)))
-    : Math.round(4 + Math.random() * 3);
-
-  const scoreColors = found.colors.length > 0
-    ? Math.min(10, Math.round(5 + found.colors.reduce((a, c) => a + (c.vibrant > 7 ? 1 : 0), 0) * 0.8))
-    : Math.round(5 + Math.random() * 3);
-
-  const trendiness = found.clothes.length > 0
-    ? Math.min(10, Math.round(4 + found.clothes.reduce((a, c) => a + c.trendy, 0) / found.clothes.length * 0.6))
-    : Math.round(5 + Math.random() * 2);
-
-  const harmony = found.colors.length >= 2
-    ? Math.min(10, Math.round(6 + Math.random() * 3))
-    : Math.round(5 + Math.random() * 3);
-
-  const overall = Math.round((scoreStyle + scoreColors + trendiness + harmony) / 4);
-
-  return {
-    overall,
-    categories: [
-      { name: 'Estilo', score: scoreStyle, color: '#ec4899' },
-      { name: 'Cores', score: scoreColors, color: '#2dd4bf' },
-      { name: 'Tendência', score: trendiness, color: '#fbbf24' },
-      { name: 'Harmonia', score: harmony, color: '#a78bfa' },
-    ],
-    clothes: found.clothes.map(c => c.label),
-    colors: found.colors.map(c => c.label),
-    styles: found.styles.map(s => s.label),
-    raw: caption,
-  };
-}
-
-function generateComment(analysis) {
-  const { overall, clothes, colors, styles, raw } = analysis;
-  const itemList = clothes.length > 0 ? clothes.slice(0, 3).join(', ') : 'peças interessantes';
-  const colorList = colors.length > 0 ? colors.slice(0, 3).join(', ') : 'tons variados';
-  const styleDesc = styles.length > 0 ? `com um viés ${styles[0]}` : 'com personalidade própria';
-
-  let comment;
-  if (overall >= 8) {
-    comment = `Seu look está impressionante! Notei ${itemList} em ${colorList} ${styleDesc}. A combinação demonstra um bom conhecimento de moda e atenção aos detalhes. O equilíbrio entre as peças cria um visual coeso e elegante. Continue assim!`;
-  } else if (overall >= 6) {
-    comment = `Seu look tem potencial! Vejo ${itemList} em ${colorList} ${styleDesc}. A composição é boa, mas alguns ajustes podem elevar ainda mais o visual. Tente brincar mais com texturas e camadas para dar profundidade ao look.`;
-  } else if (overall >= 4) {
-    comment = `Seu look é básico mas funcional. Percebi ${itemList} ${styleDesc}. Para dar mais personalidade, experimente adicionar um acessório statement ou uma peça de cor contrastante. Pequenos detalhes fazem grande diferença!`;
-  } else {
-    comment = `Este look é confortável e despojado. Não identifiquei muitos elementos de moda elaborados, mas o conforto vem primeiro! Se quiser ousar mais, tente incorporar uma peça-chave como um blazer ou um acessório marcante.`;
-  }
-
-  if (colors.length === 0 && overall < 7) {
-    comment += ' Uma dica: cores vibrantes podem transformar completamente um visual.';
-  }
-
-  return comment;
-}
-
-function generateTips(analysis) {
-  const tips = [];
-  const { overall, clothes, colors } = analysis;
-
-  if (clothes.length === 0) {
-    tips.push('Adicione peças com mais personalidade ao look — uma jaqueta estilosa ou um calçado diferente já fazem diferença.');
-  } else {
-    tips.push(`As peças que identifiquei (${clothes.slice(0, 3).join(', ')}) são um ótimo ponto de partida. Tente combiná-las de formas inesperadas.`);
-  }
-
-  if (colors.length < 2) {
-    tips.push('Experimente introduzir uma cor de destaque no look — um acessório colorido ou uma peça em tom vibrante cria interesse visual.');
-  } else {
-    tips.push(`A paleta de cores (${colors.slice(0, 3).join(', ')}) funciona bem. Tente adicionar um toque de cor complementar para dar mais vida.`);
-  }
-
-  if (overall < 6) {
-    tips.push('Invista em peças-base de qualidade: um bom jeans, uma camiseta branca bem cortada e um blazer versátil formam a base de qualquer guarda-roupa.');
-    tips.push('Acessórios são a forma mais fácil de elevar um look. Um cinto, um relógio ou uma bolsa com personalidade transformam o visual.');
-  } else {
-    tips.push('Para levar este look ao próximo nível, foque nos detalhes: a barra da calça, o tipo de dobra na manga, o acabamento dos acessórios.');
-    tips.push('Texturas diferentes (couro, algodão, seda) criam profundidade visual mesmo em looks monocromáticos. Experimente misturar!');
-  }
-
-  if (analysis.styles.includes('formal')) {
-    tips.push('O visual formal está bem encaminhado. Para eventos noturnos, invista em um tecido com mais caimento e um sapato de qualidade.');
-  } else if (analysis.styles.includes('casual') || analysis.styles.length === 0) {
-    tips.push('O estilo casual é confortável, mas você pode elevá-lo com um blazer estruturado ou um sapato mais sofisticado mantendo a essência.');
-  }
-
-  tips.push('Lembre-se: o melhor acessório é a confiança. Use o que te faz sentir bem!');
-
-  return tips.slice(0, 5);
-}
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
 function getVerdict(score) {
   if (score >= 9) return 'Deslumbrante! ✨';
@@ -472,108 +297,125 @@ function getVerdict(score) {
   return 'Precisa de atenção — vamos trabalhar nisso';
 }
 
-// ============================================================
-// SIMULATED ANALYSIS (fallback)
-// ============================================================
-function simulateAnalysis() {
-  const items = ['camiseta', 'jeans', 'tênis', 'blazer', 'vestido', 'saia', 'blusa', 'casaco', 'botas', 'acessórios'];
-  const colors = ['preto', 'branco', 'azul', 'vermelho', 'bege', 'cinza', 'verde', 'rosa'];
-  const styles = ['casual', 'elegante', 'despojado', 'moderno', 'clássico'];
+async function analyzeWithGemini(img, file) {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    alert('Primeiro configure sua chave da API Gemini na seção acima.');
+    return;
+  }
 
-  const item = items[Math.floor(Math.random() * items.length)];
-  const color = colors[Math.floor(Math.random() * colors.length)];
-  const style = styles[Math.floor(Math.random() * styles.length)];
-
-  const fakeCaption = `uma pessoa vestindo ${item} ${color} com um estilo ${style}`;
-  return analyzeCaption(fakeCaption);
-}
-
-// ============================================================
-// ANALYZE IMAGE
-// ============================================================
-async function analyze(img) {
   uploadZone.style.display = 'none';
   result.hidden = true;
   loadingOverlay.hidden = false;
-  loadingBar.style.width = '5%';
+  loadingBar.style.width = '10%';
+  loadingStep.textContent = 'Preparando imagem...';
 
-  const updateProgress = (state) => {
-    if (state.progress) loadingBar.style.width = state.progress + '%';
-    if (state.step) loadingStep.textContent = state.step;
-    if (state.status === 'downloading') {
-      loadingText.textContent = 'dayson está baixando o modelo de IA...';
-    }
-  };
+  await new Promise(r => setTimeout(r, 400));
 
   try {
-    updateProgress({ progress: 5, step: 'Preparando imagem...' });
+    loadingBar.style.width = '30%';
+    loadingStep.textContent = 'Convertendo imagem...';
 
-    await new Promise(r => setTimeout(r, 600));
+    const base64 = await fileToBase64(file);
+    const mimeType = file.type;
 
-    updateProgress({ progress: 15, step: 'Iniciando motor de IA...' });
+    loadingBar.style.width = '50%';
+    loadingStep.textContent = 'Enviando para Gemini AI...';
+    loadingText.textContent = 'dayson sofia está analisando seu look...';
 
-    let model;
-    let analysis;
-    let usedFallback = false;
+    const prompt = `Você é a "dayson sofia", uma especialista em moda, estilo e estética. Analise esta foto de uma pessoa e forneça uma crítica de moda detalhada e realista.
 
-    try {
-      model = await loadCaptionModel(updateProgress);
-      updateProgress({ progress: 85, step: 'Analisando sua foto...' });
-      await new Promise(r => setTimeout(r, 300));
+Retorne APENAS um objeto JSON válido (sem markdown, sem texto extra) com esta estrutura exata:
+{
+  "overall": <nota geral 0-10>,
+  "categories": [
+    {"name": "Estilo", "score": <0-10>},
+    {"name": "Cores", "score": <0-10>},
+    {"name": "Tendência", "score": <0-10>},
+    {"name": "Harmonia", "score": <0-10>}
+  ],
+  "comment": "<análise detalhada em português, 2-3 frases>",
+  "tips": ["<dica 1>", "<dica 2>", "<dica 3>", "<dica 4>", "<dica 5>"]
+}
 
-      const result = await model(img);
-      const caption = Array.isArray(result) ? result[0].generated_text : result.generated_text || String(result);
+Seja honesta e realista nos scores. Escreva tudo em português brasileiro.`;
 
-      updateProgress({ progress: 92, step: 'Processando resultados...' });
-      await new Promise(r => setTimeout(r, 400));
+    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: prompt },
+            { inline_data: { mime_type: mimeType, data: base64 } }
+          ]
+        }]
+      })
+    });
 
-      analysis = analyzeCaption(caption);
-    } catch (modelErr) {
-      console.warn('Model analysis failed, using simulation:', modelErr);
-      updateProgress({ progress: 85, step: 'Usando análise otimizada...' });
-      await new Promise(r => setTimeout(r, 800));
-      analysis = simulateAnalysis();
-      usedFallback = true;
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`Gemini API error (${response.status}): ${err}`);
     }
 
-    updateProgress({ progress: 98, step: 'Montando resultado...' });
-    await new Promise(r => setTimeout(r, 500));
+    loadingBar.style.width = '80%';
+    loadingStep.textContent = 'Processando resposta da IA...';
+
+    const data = await response.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!text) {
+      throw new Error('Resposta vazia da API Gemini');
+    }
+
+    const json = JSON.parse(text.replace(/```json\s*/gi, '').replace(/```\s*$/g, '').trim());
+
+    loadingBar.style.width = '95%';
+    loadingStep.textContent = 'Montando resultado...';
+    await new Promise(r => setTimeout(r, 300));
 
     loadingOverlay.hidden = true;
-    showResult(img, analysis, usedFallback);
+    showResult(img, json);
 
   } catch (err) {
-    console.error('Analysis error:', err);
+    console.error('Gemini analysis error:', err);
     loadingOverlay.hidden = true;
-
-    const analysis = simulateAnalysis();
-    showResult(img, analysis, true);
+    alert('Erro ao analisar a foto: ' + err.message);
+    uploadZone.style.display = 'block';
   }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      const base64 = result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 // ============================================================
 // SHOW RESULT
 // ============================================================
-function showResult(img, analysis, fallback) {
+function showResult(img, analysis) {
   result.hidden = false;
   resultImg.src = img.src;
 
-  const { overall, categories: cats, raw } = analysis;
+  const { overall, categories: cats, comment, tips } = analysis;
 
   resultScore.textContent = overall;
 
-  const scoreVal = overall;
   let scoreColor = '#f87171';
-  if (scoreVal >= 8) scoreColor = '#2dd4bf';
-  else if (scoreVal >= 6) scoreColor = '#fbbf24';
-  else if (scoreVal >= 4) scoreColor = '#fb923c';
+  if (overall >= 8) scoreColor = '#2dd4bf';
+  else if (overall >= 6) scoreColor = '#fbbf24';
+  else if (overall >= 4) scoreColor = '#fb923c';
 
   resultCircle.style.color = scoreColor;
   resultVerdict.textContent = getVerdict(overall);
-
-  if (fallback) {
-    modelStatusJulgar.textContent = 'Análise otimizada (modelo de IA indisponível)';
-  }
 
   categories.innerHTML = '';
   cats.forEach((cat) => {
@@ -590,7 +432,7 @@ function showResult(img, analysis, fallback) {
     const bar = document.createElement('div');
     bar.className = 'category-bar';
     bar.style.width = '0%';
-    bar.style.background = cat.color;
+    bar.style.background = cat.color || '#ec4899';
 
     const scoreLabel = document.createElement('div');
     scoreLabel.className = `category-score ${cat.score >= 7 ? 'high' : cat.score >= 5 ? 'mid' : 'low'}`;
@@ -605,12 +447,11 @@ function showResult(img, analysis, fallback) {
     setTimeout(() => { bar.style.width = (cat.score * 10) + '%'; }, 100);
   });
 
-  resultComment.textContent = generateComment(analysis);
+  resultComment.textContent = comment || 'Análise concluída.';
 
-  const tips = generateTips(analysis);
   const tipsList = resultTips;
   tipsList.innerHTML = '';
-  tips.forEach((tip) => {
+  (tips || ['Invista em peças que reflitam sua personalidade.']).slice(0, 5).forEach((tip) => {
     const li = document.createElement('li');
     li.textContent = tip;
     tipsList.appendChild(li);
@@ -629,10 +470,11 @@ btnReset.addEventListener('click', () => {
 });
 
 // ============================================================
-// INIT — Preload model status
+// INIT
 // ============================================================
-updateModelStatus('Modelo de IA será carregado ao analisar uma foto');
+loadApiKey();
+modelStatusJulgar.textContent = 'Use sua chave da API Gemini para analisar fotos';
 
-console.log('✨ dayson — inteligência de moda');
-console.log('📸 Modelo: BLIP Image Captioning (Transformers.js)');
-console.log('🔒 100% local — suas fotos não saem do seu dispositivo');
+console.log('✨ dayson sofia — inteligência de moda');
+console.log('📸 Análise via Gemini 2.0 Flash API');
+console.log('💬 Consultoria local (knowledge base)');
